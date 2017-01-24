@@ -2,29 +2,66 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
+var config Config = configInit()
+
 func main() {
 
-	indexName := "foo"
-	action := "close"
-	_ = action
+	//build base elasticsearch URL
+	url := fmt.Sprintf("%s://%s:%d", config.protocol, config.host, config.port)
 
-	createTestIndex("foo")
-	prepareElasticActionTestRun(indexName)
+	//use context struct
+	ctx := ElasticCtx{url}
+	_ = ctx
 
-	// executeElasticAction(indexName, action)
-	// executeElasticAction(indexName, action)
+	fmt.Println(config.protocol, config.host, config.port, config.index, config.action)
 
+	// createTestIndex(ctx, config.index)
+	// prepareElasticActionTestRun(ctx, index)
+	// executeElasticAction(ctx, config.index, config.action)
 }
 
-func executeElasticAction(indexName string, action string) string {
+type Config struct {
+	protocol string
+	host     string
+	port     int
+	index    string
+	url      string
+	action   string
+}
 
-	url := "http://localhost:9200/" + indexName + "/_" + action + ""
-	fmt.Println("URL:\n", url)
+type ElasticCtx struct {
+	url string
+}
+
+func configInit() Config {
+	//config setup
+	protocol := flag.String("protocol", "http", "HTTP vs. HTTPS")
+	host := flag.String("host", "localhost", "hostname or IP for elasticsearch HTTP")
+	port := flag.Int("port", 9200, "HTTP Port for ElasticSearch")
+	index := flag.String("index", "foo", "Elasticsearch Index to perform action on")
+	action := flag.String("action", "open", "Action to perform e.g. open or close index")
+	flag.Parse()
+
+	// deference yr pointers to get the actual option values
+	// fmt.Println(*protocol, *host, *port)
+
+	//initial Config struct
+	config := Config{*protocol, *host, *port, *index, *index, *action}
+	// fmt.Println(config.host)
+
+	return config
+}
+
+func executeElasticAction(es ElasticCtx, index string, action string) string {
+
+	url := fmt.Sprintf("%s/%s/_%s", es.url, config.index, config.action)
+	fmt.Println("URL:>", url)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(nil))
 	req.Header.Set("Content-Type", "application/json")
@@ -44,37 +81,37 @@ func executeElasticAction(indexName string, action string) string {
 	return string(body)
 }
 
-func prepareElasticActionTestRun(indexName string) {
-	prepareElasticAction(indexName, "close")
-	prepareElasticAction(indexName, "open")
-	prepareElasticAction(indexName, "close")
-	prepareElasticAction(indexName, "open")
-	fmt.Printf("done with test run on %s\n", indexName)
+func prepareElasticActionTestRun(es ElasticCtx, index string) {
+	prepareElasticAction(es, index, "close")
+	prepareElasticAction(es, index, "open")
+	prepareElasticAction(es, index, "close")
+	prepareElasticAction(es, index, "open")
+	fmt.Printf("done with test run on %s\n", index)
 	return
 }
 
-func prepareElasticAction(indexName string, action string) string {
+func prepareElasticAction(es ElasticCtx, index string, action string) string {
 
-	fmt.Printf("action will be: '%s' on index: '%s' \n", action, indexName)
+	fmt.Printf("action will be: '%s' on index: '%s' \n", action, index)
 	switch action {
 	case "open":
-		fmt.Printf("opened %s", indexName)
+		fmt.Printf("opened %s", index)
 		action := "open"
-		executeElasticAction(indexName, action)
+		executeElasticAction(es, index, action)
 	case "close":
-		fmt.Printf("closed %s", indexName)
+		fmt.Printf("closed %s", index)
 		action := "close"
-		executeElasticAction(indexName, action)
+		executeElasticAction(es, index, action)
 	case "state":
-		fmt.Printf("state of %s is", indexName)
+		fmt.Printf("state of %s is", index)
 	}
 
 	return action
 }
 
-func createTestIndex(indexName string) {
+func createTestIndex(es ElasticCtx, index string) {
 
-	url := "http://localhost:9200/" + indexName + "/bar/1"
+	url := fmt.Sprintf("%s/%s", es.url, index)
 	fmt.Println("URL:>", url)
 
 	var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
