@@ -21,8 +21,8 @@ func main() {
 
 	fmt.Println(config.protocol, config.host, config.port, config.index, config.action)
 
-	// createTestIndex(ctx, config.index)
-	// prepareElasticActionTestRun(ctx, index)
+	createTestIndex(ctx, config.index)
+	prepareElasticActionTestRun(ctx, config.index)
 	// executeElasticAction(ctx, config.index, config.action)
 }
 
