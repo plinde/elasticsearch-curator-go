@@ -3,10 +3,11 @@ Elasticsearch Curator (in Go)
 
 Very basic implementation of some [Elasticsearch Curator](https://github.com/elastic/curator) functionality.
 
-Currently supported
-* Open/Close Index API
+Currently supported (http://localhost:9200, unauthenticated)
+* Create,Delete,Open,Close Index API
 ```
-./elasticsearch-curator-go --host foobar --port 12345 --protocol https --index foobar --action close
-./elasticsearch-curator-go --host localhost --port 9200 --protocol http --index foobar --action open
-./elasticsearch-curator-go --host localhost --port 9200 --protocol http --index barfoo --action close
+./elasticsearch-curator-go index create mynewindex -v
+./elasticsearch-curator-go index close mynewindex -v
+./elasticsearch-curator-go index open mynewindex -v
+./elasticsearch-curator-go index delete mynewindex -v
 ```
